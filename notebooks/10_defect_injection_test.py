@@ -49,7 +49,9 @@ def inject(table, rule_id, n, desc, where="1=1", overrides=None):
     injected[table].append(df)
     EXPECT.append((rule_id, table, df.count(), desc))
 
-seq = "concat('9', cast(_row_id % 100000 as string))"     # fresh item / payment sequence number
+# fresh, unique item / payment sequence number per injected row: (_row_id - BASE) is unique across ALL batches (offsets differ),
+# +1e8 keeps it a plain int. (An earlier "_row_id % 100000" version collided across batches and inflated the duplicate-rule counts.)
+seq = f"cast(_row_id - {BASE} + 100000000 as string)"
 
 # ---- customers
 inject("customers", "DQ-CUS-02", 6, "exact duplicate customer_id")
