@@ -1,0 +1,12 @@
+# data (never commit the Olist CSVs; see data/README.md)
+data/*.csv
+*.csv
+# python / OS / editor
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+# secrets
+.env
+*.key
