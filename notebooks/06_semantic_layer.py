@@ -224,4 +224,4 @@ SELECT b.metric, b.unit, b.baseline_value, round(m.governed_value, 4) AS governe
        CASE WHEN abs(100.0 * (m.governed_value - b.baseline_value) / nullif(b.baseline_value,0)) <= 0.5 THEN 'WITHIN TOLERANCE' ELSE 'REVIEW' END AS status
 FROM {G('baseline_kpis')} b JOIN m ON m.metric = b.metric""")
 
-print("semantic layer ready:", [r.tableName for r in spark.sql(f"SHOW VIEWS IN {CATALOG}.semantic").collect()])
+print("semantic layer ready:", [r.viewName for r in spark.sql(f"SHOW VIEWS IN {CATALOG}.semantic").collect()])
