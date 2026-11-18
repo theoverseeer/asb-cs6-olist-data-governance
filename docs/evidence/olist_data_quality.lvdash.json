@@ -1,0 +1,1900 @@
+{
+  "datasets": [
+    {
+      "name": "dq_quarantine_detail",
+      "displayName": "DQ Quarantine Detail",
+      "config": {
+        "source": "olist_gov.semantic.dq_quarantine_detail",
+        "measures": [
+          {
+            "name": "quarantined_records",
+            "expr": "COUNT(1)"
+          },
+          {
+            "name": "failed_rule_count",
+            "expr": "SUM(failed_rule_count)"
+          }
+        ],
+        "version": "1.1",
+        "comment": "Quarantined records with failed data quality rules for steward investigation",
+        "dimensions": [
+          {
+            "name": "record_key",
+            "expr": "record_key"
+          },
+          {
+            "name": "rule_id",
+            "expr": "rule_id"
+          },
+          {
+            "name": "rule_description",
+            "expr": "rule_description"
+          },
+          {
+            "name": "dq_dimension",
+            "expr": "dimension"
+          },
+          {
+            "name": "source_table",
+            "expr": "source_table"
+          },
+          {
+            "name": "steward_role",
+            "expr": "steward_role"
+          },
+          {
+            "name": "quarantined_at",
+            "expr": "quarantined_at"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dq_dimension_health",
+      "displayName": "DQ Dimension Health",
+      "config": {
+        "source": "olist_gov.semantic.dq_dimension_summary",
+        "measures": [
+          {
+            "name": "rules",
+            "expr": "SUM(rules)"
+          },
+          {
+            "name": "rules_failed",
+            "expr": "SUM(rules_failed)"
+          },
+          {
+            "name": "evaluated_checks",
+            "expr": "SUM(evaluated_checks)"
+          },
+          {
+            "name": "failed_checks",
+            "expr": "SUM(failed_checks)"
+          },
+          {
+            "name": "pass_rate_pct",
+            "expr": "(SUM(evaluated_checks) - SUM(failed_checks)) * 100.0 / NULLIF(SUM(evaluated_checks), 0)"
+          }
+        ],
+        "version": "1.1",
+        "comment": "Latest-run data quality pass rates and failed checks per DQ dimension",
+        "dimensions": [
+          {
+            "name": "dq_dimension",
+            "expr": "dimension"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dq_orders_trend",
+      "displayName": "DQ Orders Trend",
+      "config": {
+        "source": "olist_gov.semantic.orders",
+        "measures": [
+          {
+            "name": "total_orders",
+            "expr": "COUNT(1)"
+          },
+          {
+            "name": "orders_with_dq_warning",
+            "expr": "SUM(CASE WHEN has_dq_warning THEN 1 ELSE 0 END)"
+          },
+          {
+            "name": "dq_warning_rate_pct",
+            "expr": "SUM(CASE WHEN has_dq_warning THEN 1 ELSE 0 END) * 100.0 / COUNT(1)"
+          }
+        ],
+        "version": "1.1",
+        "comment": "Monthly order counts and DQ-warning order counts for trend analysis",
+        "dimensions": [
+          {
+            "name": "purchase_month",
+            "expr": "purchase_month"
+          }
+        ]
+      }
+    },
+    {
+      "name": "7e0348a3",
+      "displayName": "dq_trust",
+      "queryLines": [
+        "SELECT * FROM olist_gov.semantic.dq_trust_scorecard;"
+      ]
+    },
+    {
+      "name": "0d0ee450",
+      "displayName": "dq_reconciliation",
+      "queryLines": [
+        "SELECT metric, unit, baseline_value, governed_value, difference, difference_pct, status \r\n",
+        "FROM olist_gov.semantic.dq_kpi_reconciliation ORDER BY metric;"
+      ]
+    },
+    {
+      "name": "4a6682ea",
+      "displayName": "dq_by_table",
+      "queryLines": [
+        "SELECT table_name, valid_count - valid_with_warnings_count AS valid_clean, valid_with_warnings_count AS valid_with_warnings,\r\n",
+        "       quarantined_count, evaluated_count, pass_rate_pct, failure_rate_pct\r\n",
+        "FROM olist_gov.semantic.dq_table_summary ORDER BY quarantined_count DESC;"
+      ]
+    },
+    {
+      "name": "7adf12f6",
+      "displayName": "dq_by_dimension",
+      "queryLines": [
+        "SELECT dimension, rules, failed_checks, pass_rate_pct, rules_failed FROM olist_gov.semantic.dq_dimension_summary ORDER BY failed_checks DESC;"
+      ]
+    },
+    {
+      "name": "06160527",
+      "displayName": "dq_by_rule",
+      "queryLines": [
+        "SELECT rule_id, rule_description, dimension, table_name, failure_action, failed_count, evaluated_count, pass_rate_pct,\r\n",
+        "       target_pass_rate_pct, rule_status, steward_role\r\n",
+        "FROM olist_gov.semantic.dq_rule_scorecard ORDER BY failed_count DESC;"
+      ]
+    },
+    {
+      "name": "db90fc6e",
+      "displayName": "dq_top_failing",
+      "queryLines": [
+        "SELECT rule_id, table_name, dimension, failed_count FROM olist_gov.semantic.dq_rule_scorecard\r\n",
+        "WHERE failed_count > 0 ORDER BY failed_count DESC LIMIT 10;"
+      ]
+    },
+    {
+      "name": "e71c4724",
+      "displayName": "dq_rule_status_mix",
+      "queryLines": [
+        "SELECT rule_status, count(*) AS rules FROM olist_gov.semantic.dq_rule_scorecard GROUP BY rule_status;"
+      ]
+    },
+    {
+      "name": "b9fb87a4",
+      "displayName": "dq_by_steward",
+      "queryLines": [
+        "SELECT steward_role, data_domain, sum(failed_count) AS failed_checks, sum(CASE WHEN rule_status = 'FAILED' THEN 1 ELSE 0 END) AS failed_rules\r\n",
+        "FROM olist_gov.semantic.dq_rule_scorecard GROUP BY steward_role, data_domain ORDER BY failed_checks DESC;"
+      ]
+    },
+    {
+      "name": "7051457e",
+      "displayName": "dq_value_at_risk",
+      "queryLines": [
+        "SELECT * FROM olist_gov.semantic.dq_quarantined_item_value ORDER BY item_price_brl DESC;"
+      ]
+    },
+    {
+      "name": "c4ac2788",
+      "displayName": "dq_trend",
+      "queryLines": [
+        "SELECT run_ts, pass_rate_pct, quarantined FROM olist_gov.semantic.dq_run_trend ORDER BY run_ts;"
+      ]
+    },
+    {
+      "name": "d120e250",
+      "displayName": "dq_investigate",
+      "queryLines": [
+        "SELECT source_table, record_key, rule_id, rule_description, failed_rule_count, source_file, record_payload\r\n",
+        "FROM olist_gov.semantic.dq_quarantine_detail ORDER BY failed_rule_count DESC, source_table LIMIT 500;"
+      ]
+    },
+    {
+      "name": "c7d02c02",
+      "displayName": "dq_injection_evidence",
+      "queryLines": [
+        "SELECT rule_id, table_name, defect, injected_rows, rule_failed_count, result\r\n",
+        "FROM olist_gov.governance.dq_injection_test_results\r\n",
+        "WHERE test_run_id = (SELECT max(test_run_id) FROM olist_gov.governance.dq_injection_test_results) ORDER BY rule_id;"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "ac548725",
+      "displayName": "Olist Data Quality",
+      "layout": [
+        {
+          "widget": {
+            "name": "pass_rate_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_dimension_health",
+                  "fields": [
+                    {
+                      "name": "measure(pass_rate_pct)",
+                      "expression": "MEASURE(`pass_rate_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Check pass rate (%)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(pass_rate_pct)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "failed_checks_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_dimension_health",
+                  "fields": [
+                    {
+                      "name": "measure(failed_checks)",
+                      "expression": "MEASURE(`failed_checks`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Failed Checks"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(failed_checks)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "quarantined_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_quarantine_detail",
+                  "fields": [
+                    {
+                      "name": "measure(quarantined_records)",
+                      "expression": "MEASURE(`quarantined_records`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Quarantined Records"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(quarantined_records)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "warned_orders_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_orders_trend",
+                  "fields": [
+                    {
+                      "name": "measure(orders_with_dq_warning)",
+                      "expression": "MEASURE(`orders_with_dq_warning`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Orders with DQ Warnings"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(orders_with_dq_warning)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "pass_rate_by_dimension",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_dimension_health",
+                  "fields": [
+                    {
+                      "name": "dq_dimension",
+                      "expression": "`dq_dimension`"
+                    },
+                    {
+                      "name": "measure(pass_rate_pct)",
+                      "expression": "MEASURE(`pass_rate_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Pass Rate by DQ Dimension",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "dq_dimension",
+                  "displayName": "dq_dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(pass_rate_pct)",
+                  "displayName": "Pass rate (%)",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "type": "custom",
+                      "min": 99,
+                      "max": 100
+                    }
+                  }
+                },
+                "color": {
+                  "fieldName": "dq_dimension",
+                  "displayName": "dq_dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "quarantine_by_rule",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_quarantine_detail",
+                  "fields": [
+                    {
+                      "name": "rule_id",
+                      "expression": "`rule_id`"
+                    },
+                    {
+                      "name": "measure(quarantined_records)",
+                      "expression": "MEASURE(`quarantined_records`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Quarantined Records by Rule"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "rule_id",
+                  "displayName": "rule_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(quarantined_records)",
+                  "displayName": "quarantined_records",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "rule_id",
+                  "displayName": "rule_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "quarantine_by_source_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_quarantine_detail",
+                  "fields": [
+                    {
+                      "name": "source_table",
+                      "expression": "`source_table`"
+                    },
+                    {
+                      "name": "measure(quarantined_records)",
+                      "expression": "MEASURE(`quarantined_records`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Quarantined Records by Source Table"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "source_table",
+                  "displayName": "source_table",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(quarantined_records)",
+                  "displayName": "quarantined_records",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "source_table",
+                  "displayName": "source_table",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 3,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "warned_orders_by_month",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_orders_trend",
+                  "fields": [
+                    {
+                      "name": "monthly(purchase_month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `purchase_month`)"
+                    },
+                    {
+                      "name": "measure(orders_with_dq_warning)",
+                      "expression": "MEASURE(`orders_with_dq_warning`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Orders with DQ Warnings by Month"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(purchase_month)",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(orders_with_dq_warning)",
+                  "displayName": "orders_with_dq_warning",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "quarantine_by_dimension",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_quarantine_detail",
+                  "fields": [
+                    {
+                      "name": "dq_dimension",
+                      "expression": "`dq_dimension`"
+                    },
+                    {
+                      "name": "measure(quarantined_records)",
+                      "expression": "MEASURE(`quarantined_records`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Quarantined Records by DQ Dimension"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "dq_dimension",
+                  "displayName": "dq_dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(quarantined_records)",
+                  "displayName": "quarantined_records",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "dq_dimension",
+                  "displayName": "dq_dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 7,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "dimension_summary_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_dimension_health",
+                  "fields": [
+                    {
+                      "name": "dq_dimension",
+                      "expression": "`dq_dimension`"
+                    },
+                    {
+                      "name": "measure(rules)",
+                      "expression": "MEASURE(`rules`)"
+                    },
+                    {
+                      "name": "measure(rules_failed)",
+                      "expression": "MEASURE(`rules_failed`)"
+                    },
+                    {
+                      "name": "measure(evaluated_checks)",
+                      "expression": "MEASURE(`evaluated_checks`)"
+                    },
+                    {
+                      "name": "measure(failed_checks)",
+                      "expression": "MEASURE(`failed_checks`)"
+                    },
+                    {
+                      "name": "measure(pass_rate_pct)",
+                      "expression": "MEASURE(`pass_rate_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "DQ Dimension Summary"
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "dq_dimension"
+                  },
+                  {
+                    "fieldName": "measure(rules)"
+                  },
+                  {
+                    "fieldName": "measure(rules_failed)"
+                  },
+                  {
+                    "fieldName": "measure(evaluated_checks)"
+                  },
+                  {
+                    "fieldName": "measure(failed_checks)"
+                  },
+                  {
+                    "fieldName": "measure(pass_rate_pct)"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "quarantine_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_quarantine_detail",
+                  "fields": [
+                    {
+                      "name": "record_key",
+                      "expression": "`record_key`"
+                    },
+                    {
+                      "name": "source_table",
+                      "expression": "`source_table`"
+                    },
+                    {
+                      "name": "rule_id",
+                      "expression": "`rule_id`"
+                    },
+                    {
+                      "name": "dq_dimension",
+                      "expression": "`dq_dimension`"
+                    },
+                    {
+                      "name": "steward_role",
+                      "expression": "`steward_role`"
+                    },
+                    {
+                      "name": "quarantined_at",
+                      "expression": "`quarantined_at`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Quarantined Records"
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "record_key"
+                  },
+                  {
+                    "fieldName": "source_table"
+                  },
+                  {
+                    "fieldName": "rule_id"
+                  },
+                  {
+                    "fieldName": "dq_dimension"
+                  },
+                  {
+                    "fieldName": "steward_role"
+                  },
+                  {
+                    "fieldName": "quarantined_at"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "f61153b9",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7adf12f6",
+                  "fields": [
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    },
+                    {
+                      "name": "sum(failed_checks)",
+                      "expression": "SUM(`failed_checks`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Failed Checks by DQ Dimension"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "dimension",
+                  "displayName": "DQ Dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(failed_checks)",
+                  "displayName": "Failed Checks",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "dimension",
+                  "displayName": "DQ Dimension",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "db613565",
+      "displayName": "Trust summary",
+      "layout": [
+        {
+          "widget": {
+            "name": "923e19ef",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "records_evaluated",
+                      "expression": "`records_evaluated`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Records evaluated",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "records_evaluated"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "ed97f76b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "records_valid",
+                      "expression": "`records_valid`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Valid records",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "records_valid"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "b2d8393b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "records_quarantined",
+                      "expression": "`records_quarantined`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Quarantined records",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "records_quarantined"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "dc107005",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "pass_rate_pct",
+                      "expression": "`pass_rate_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Record pass rate (%)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pass_rate_pct"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "04bb0d8d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "failure_rate_pct",
+                      "expression": "`failure_rate_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Failure rate (%)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "failure_rate_pct"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "87863f07",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "item_value_coverage_pct",
+                      "expression": "`item_value_coverage_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Item value coverage (%)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "item_value_coverage_pct"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "393ca821",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7e0348a3",
+                  "fields": [
+                    {
+                      "name": "trust_status",
+                      "expression": "`trust_status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Trust verdict",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "trust_status"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "98e61a8b",
+      "displayName": "Rule scorecard",
+      "layout": [
+        {
+          "widget": {
+            "name": "rule-scorecard-latest-run",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "06160527",
+                  "fields": [
+                    {
+                      "name": "rule_id",
+                      "expression": "`rule_id`"
+                    },
+                    {
+                      "name": "rule_description",
+                      "expression": "`rule_description`"
+                    },
+                    {
+                      "name": "table_name",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "failure_action",
+                      "expression": "`failure_action`"
+                    },
+                    {
+                      "name": "failed_count",
+                      "expression": "`failed_count`"
+                    },
+                    {
+                      "name": "pass_rate_pct",
+                      "expression": "`pass_rate_pct`"
+                    },
+                    {
+                      "name": "target_pass_rate_pct",
+                      "expression": "`target_pass_rate_pct`"
+                    },
+                    {
+                      "name": "rule_status",
+                      "expression": "`rule_status`"
+                    },
+                    {
+                      "name": "steward_role",
+                      "expression": "`steward_role`"
+                    }
+                  ],
+                  "disaggregated": true,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "`rule_status`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Rule scorecard (latest run)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "rowsPerPage": 100,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "rule_id"
+                  },
+                  {
+                    "fieldName": "rule_description"
+                  },
+                  {
+                    "fieldName": "table_name"
+                  },
+                  {
+                    "fieldName": "failure_action"
+                  },
+                  {
+                    "fieldName": "failed_count"
+                  },
+                  {
+                    "fieldName": "pass_rate_pct"
+                  },
+                  {
+                    "fieldName": "target_pass_rate_pct"
+                  },
+                  {
+                    "fieldName": "rule_status",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "PASSED"
+                            },
+                            "operator": "="
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 3
+                          }
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "WARNING"
+                            },
+                            "operator": "="
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 4
+                          }
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "FAILED"
+                            },
+                            "operator": "="
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 6
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "fieldName": "steward_role"
+                  }
+                ],
+                "rowOrder": [
+                  {
+                    "by": "column-reversed",
+                    "field": {
+                      "index": 7
+                    }
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "649071d0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e71c4724",
+                  "fields": [
+                    {
+                      "name": "rules",
+                      "expression": "`rules`"
+                    },
+                    {
+                      "name": "rule_status",
+                      "expression": "`rule_status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Rules by Status",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "rules",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Rules"
+                },
+                "color": {
+                  "fieldName": "rule_status",
+                  "displayName": "Rule Status",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 8,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "steward-workload",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "b9fb87a4",
+                  "fields": [
+                    {
+                      "name": "failed_checks",
+                      "expression": "`failed_checks`"
+                    },
+                    {
+                      "name": "failed_rules",
+                      "expression": "`failed_rules`"
+                    },
+                    {
+                      "name": "data_domain",
+                      "expression": "`data_domain`"
+                    },
+                    {
+                      "name": "steward_role",
+                      "expression": "`steward_role`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Steward workload",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "failed_checks"
+                  },
+                  {
+                    "fieldName": "failed_rules"
+                  },
+                  {
+                    "fieldName": "data_domain"
+                  },
+                  {
+                    "fieldName": "steward_role"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "bcd34027",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "7051457e",
+                  "fields": [
+                    {
+                      "name": "sum(item_price_brl)",
+                      "expression": "SUM(`item_price_brl`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Value at risk (BRL)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Only DQ-ITM-04 quarantines order items with a value in this extract",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(item_price_brl)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "9664fbd0",
+      "displayName": "Evidence",
+      "layout": [
+        {
+          "widget": {
+            "name": "reconciliation",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0d0ee450",
+                  "fields": [
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    },
+                    {
+                      "name": "baseline_value",
+                      "expression": "`baseline_value`"
+                    },
+                    {
+                      "name": "governed_value",
+                      "expression": "`governed_value`"
+                    },
+                    {
+                      "name": "difference",
+                      "expression": "`difference`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Reconciliation",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Governed values vs source baseline; all metrics within tolerance.",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "metric",
+                    "columnWidth": 208,
+                    "displayName": "Metric"
+                  },
+                  {
+                    "fieldName": "baseline_value",
+                    "displayName": "Baseline"
+                  },
+                  {
+                    "fieldName": "governed_value",
+                    "displayName": "Governed"
+                  },
+                  {
+                    "fieldName": "difference",
+                    "displayName": "Diff"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "Status",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "WITHIN TOLERANCE"
+                            },
+                            "operator": "="
+                          },
+                          "backgroundColor": "#00A972"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "injection-evidence",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c7d02c02",
+                  "fields": [
+                    {
+                      "name": "rule_id",
+                      "expression": "`rule_id`"
+                    },
+                    {
+                      "name": "defect",
+                      "expression": "`defect`"
+                    },
+                    {
+                      "name": "injected_rows",
+                      "expression": "`injected_rows`"
+                    },
+                    {
+                      "name": "rule_failed_count",
+                      "expression": "`rule_failed_count`"
+                    },
+                    {
+                      "name": "result",
+                      "expression": "`result`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Injection evidence",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Failed includes pre-existing bad rows as well as the injected ones",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "rule_id",
+                    "displayName": "Rule"
+                  },
+                  {
+                    "fieldName": "defect",
+                    "displayName": "Defect"
+                  },
+                  {
+                    "fieldName": "injected_rows",
+                    "displayName": "Injected"
+                  },
+                  {
+                    "fieldName": "rule_failed_count",
+                    "displayName": "Failed"
+                  },
+                  {
+                    "fieldName": "result",
+                    "displayName": "Result",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "CAUGHT"
+                            },
+                            "operator": "="
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 3
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "data-quality-trend-by-run",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c4ac2788",
+                  "fields": [
+                    {
+                      "name": "hourly(run_ts)",
+                      "expression": "DATE_TRUNC(\"HOUR\", `run_ts`)"
+                    },
+                    {
+                      "name": "avg(pass_rate_pct)",
+                      "expression": "AVG(`pass_rate_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Data quality trend by run",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Average pass rate per pipeline run. One run recorded so far; the line builds with each run",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "mark": {
+                "marker": {
+                  "shape": "circle"
+                }
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "hourly(run_ts)",
+                  "displayName": "Run time",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(pass_rate_pct)",
+                  "displayName": "Pass rate (%)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
