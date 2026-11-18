@@ -26,6 +26,25 @@ flowchart TD
 
 Text version for the submission: `Source → Raw → Data Quality → {Valid, Quarantine} → Facts + Dimensions → Semantic Layer → Operational Dashboard`, with `Quarantine + results → Data Quality Dashboard`.
 
+## Results (Databricks run)
+
+- 1,550,922 records evaluated, 1,550,786 valid, 136 quarantined (pass rate 99.991%).
+- 60 rules: 59 passed, 1 warning (DQ-REV-07, 1,098 reviews on orders with more than one review), 0 failed.
+- Governed KPIs are 0.02% below the earlier ungoverned dashboard, exactly the quarantined items (R$ 2,919.61).
+- 56/56 pipeline assertions passed; 46/46 defect-injection checks passed (209 injected defects, all caught).
+
+![Rules registered](docs/screenshots/03_rules_registered.jpg)
+![DQ engine counts](docs/screenshots/04_dq_engine_counts.jpg)
+![Pipeline assertions](docs/screenshots/08_assertions_56_passed.jpg)
+![Defect injection test](docs/screenshots/10_injection_test_46_passed.jpg)
+![ER diagram](docs/screenshots/er_diagram.png)
+![Lineage](docs/screenshots/lineage_graph.png)
+
+### Data quality dashboard
+![Trust summary](dashboards/Trust%20Summary.png)
+![Rule scorecard](dashboards/Rule%20Scorecard.png)
+![Evidence](dashboards/Evidence.png)
+
 ## 2. Repository map
 
 | Path | What it is |
