@@ -62,6 +62,11 @@ Dataset queries: [docs/operational_datasets.sql](docs/operational_datasets.sql)
 | `docs/LOCAL_DRY_RUN.md` | output of that run on the real data |
 | `tools/build_rules.py` | single source of truth for the rules: regenerates notebook 03 and `docs/DQ_RULES.md` (`python tools/build_rules.py`) |
 | `data/README.md` | where to get the Olist CSVs (not committed) |
+| `dashboards/` | published-view screenshots of the data quality and operational dashboards |
+| `docs/evidence/` | Databricks run evidence (assertions, injection test, ER and lineage images, architecture diagram) and the dashboard exports (`olist_data_quality.lvdash.json`, `olist_operational.lvdash.json`) |
+| `docs/screenshots/` | notebook and pipeline run screenshots shown in the Results section |
+| `docs/architecture.mmd` | Mermaid source for the architecture diagram (rendered to `docs/evidence/architecture.png`) |
+| `docs/operational_datasets.sql` | the six dataset queries behind the operational dashboard |
 
 ## 3. How to run (Databricks)
 
