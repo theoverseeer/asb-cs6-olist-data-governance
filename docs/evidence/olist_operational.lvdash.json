@@ -1,0 +1,928 @@
+{
+  "datasets": [
+    {
+      "name": "a3755962",
+      "displayName": "op_kpis",
+      "queryLines": [
+        "SELECT\r\n",
+        "  COUNT(DISTINCT order_id) AS orders,\r\n",
+        "  SUM(price) AS sales_brl,\r\n",
+        "  ROUND((SUM(price) + SUM(freight_value)) / SUM(order_weight), 2) AS aov_brl,\r\n",
+        "  ROUND(SUM(CASE WHEN has_delivery THEN delivery_days * order_weight END)\r\n",
+        "    / SUM(CASE WHEN has_delivery THEN order_weight END), 2) AS avg_delivery_days,\r\n",
+        "  ROUND(100 * SUM(CASE WHEN has_delivery AND is_late THEN order_weight END)\r\n",
+        "    / SUM(CASE WHEN has_delivery THEN order_weight END), 2) AS late_delivery_pct,\r\n",
+        "  ROUND(SUM(CASE WHEN has_review THEN review_score * order_weight END)\r\n",
+        "    / SUM(CASE WHEN has_review THEN order_weight END), 2) AS avg_review_score\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order;"
+      ]
+    },
+    {
+      "name": "aff2a027",
+      "displayName": "op_monthly",
+      "queryLines": [
+        "SELECT purchase_month AS month, COUNT(DISTINCT order_id) AS orders, SUM(price) AS sales_brl\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order\r\n",
+        "  AND purchase_month BETWEEN DATE'2017-01-01' AND DATE'2018-08-01'\r\n",
+        "GROUP BY 1 ORDER BY 1;"
+      ]
+    },
+    {
+      "name": "06c3cb28",
+      "displayName": "op_category",
+      "queryLines": [
+        "SELECT product_category AS category, SUM(price) AS sales_brl\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order\r\n",
+        "GROUP BY 1 ORDER BY 2 DESC LIMIT 10;"
+      ]
+    },
+    {
+      "name": "6892e771",
+      "displayName": "op_late_monthly",
+      "queryLines": [
+        "SELECT purchase_month AS month,\r\n",
+        "       100 * SUM(CASE WHEN is_late THEN order_weight END) / SUM(order_weight) AS late_delivery_pct\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order AND has_delivery\r\n",
+        "  AND purchase_month BETWEEN DATE'2017-01-01' AND DATE'2018-08-01'\r\n",
+        "GROUP BY 1 ORDER BY 1;"
+      ]
+    },
+    {
+      "name": "b59e49af",
+      "displayName": "op_state_delivery",
+      "queryLines": [
+        "SELECT customer_state,\r\n",
+        "       SUM(delivery_days * order_weight) / SUM(order_weight) AS avg_delivery_days\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order AND has_delivery\r\n",
+        "GROUP BY 1 ORDER BY 2 DESC;"
+      ]
+    },
+    {
+      "name": "0a45817b",
+      "displayName": "op_review_dist",
+      "queryLines": [
+        "SELECT review_score, ROUND(SUM(order_weight)) AS orders\r\n",
+        "FROM olist_gov.semantic.sales_order_items\r\n",
+        "WHERE is_valid_order AND has_review\r\n",
+        "GROUP BY 1 ORDER BY 1;"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "6798b7ae",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "orders-valid",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "orders",
+                      "expression": "`orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Orders (valid)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Count of valid orders",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "orders"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "sales-brl",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "sales_brl",
+                      "expression": "`sales_brl`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Sales (BRL)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Total item sales on valid orders, excluding freight",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sales_brl"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "average-order-value-brl",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "aov_brl",
+                      "expression": "`aov_brl`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Average order value (BRL)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Item price plus freight per valid order",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "aov_brl"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "avg-review-score",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "avg_review_score",
+                      "expression": "`avg_review_score`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Average review score",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Valid orders, weighted by order\\_weight",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_review_score"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "98baa767",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "aff2a027",
+                  "fields": [
+                    {
+                      "name": "month",
+                      "expression": "`month`"
+                    },
+                    {
+                      "name": "orders",
+                      "expression": "`orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Orders by Month",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Jan 2017 to Aug 2018; other months have too few orders to chart.",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "month",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "orders",
+                  "displayName": "Orders",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "sales-by-month",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "aff2a027",
+                  "fields": [
+                    {
+                      "name": "monthly(month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `month`)"
+                    },
+                    {
+                      "name": "sales_brl",
+                      "expression": "`sales_brl`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Sales by Month",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Jan 2017 to Aug 2018; other months have too few orders to chart.",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(month)",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sales_brl",
+                  "displayName": "Sales (BRL)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "283b0f6e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "06c3cb28",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "sum(sales_brl)",
+                      "expression": "SUM(`sales_brl`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Top 10 categories by sales (BRL)",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "category",
+                  "displayName": "Category",
+                  "scale": {
+                    "categorySize": {
+                      "number": 10,
+                      "type": "number-of-categories"
+                    },
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(sales_brl)",
+                  "displayName": "Sales (BRL)",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "type": "custom"
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "87914c2c",
+            "spec": {
+              "widgetType": "text",
+              "version": 1,
+              "encodings": {
+                "text": {
+                  "lines": [
+                    "<span style=\"text-align:center;display:block;\"><span style=\"font-size:18px;font-family:Arial\">Governed measures: valid orders only; order-level averages weighted by order\\_weight</span></span>"
+                  ],
+                  "fields": []
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 12,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "00cb0885",
+      "displayName": "Delivery",
+      "layout": [
+        {
+          "widget": {
+            "name": "average-delivery-days-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "avg_delivery_days",
+                      "expression": "`avg_delivery_days`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Average delivery days",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Delivered valid orders, weighted by order\\_weight",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_delivery_days"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "late-deliveries-percentage",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "late_delivery_pct",
+                      "expression": "`late_delivery_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Late deliveries (%)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Delivered after the estimated date",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "late_delivery_pct"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "late-deliveries-by-month",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6892e771",
+                  "fields": [
+                    {
+                      "name": "monthly(month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `month`)"
+                    },
+                    {
+                      "name": "sum(late_delivery_pct)",
+                      "expression": "SUM(`late_delivery_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Late deliveries by month (%)",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Jan 2017 to Aug 2018; other months have too few orders to chart",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(month)",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(late_delivery_pct)",
+                  "displayName": "Late deliveries (%)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "average-delivery-days-by-state",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "b59e49af",
+                  "fields": [
+                    {
+                      "name": "customer_state",
+                      "expression": "`customer_state`"
+                    },
+                    {
+                      "name": "sum(avg_delivery_days)",
+                      "expression": "SUM(`avg_delivery_days`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Average delivery days by state",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Delivered valid orders, weighted by order\\_weight",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "customer_state",
+                  "displayName": "State",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(avg_delivery_days)",
+                  "displayName": "Average delivery days",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bf1fc633",
+            "spec": {
+              "widgetType": "text",
+              "version": 1,
+              "encodings": {
+                "text": {
+                  "lines": [
+                    "<span style=\"text-align:center;display:block;\"><span style=\"font-family: Arial;font-size: 18px;\">Delivery measures cover delivered valid orders only; averages weighted by order\\_weight</span></span>"
+                  ],
+                  "fields": []
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7bc973a0",
+      "displayName": "Customers and Reviews",
+      "layout": [
+        {
+          "widget": {
+            "name": "average-review-score",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a3755962",
+                  "fields": [
+                    {
+                      "name": "avg_review_score",
+                      "expression": "`avg_review_score`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Average review score",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Valid orders, weighted by order\\_weight",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_review_score"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "review-score-distribution",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0a45817b",
+                  "fields": [
+                    {
+                      "name": "review_score",
+                      "expression": "`review_score`"
+                    },
+                    {
+                      "name": "sum(orders)",
+                      "expression": "SUM(`orders`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": {
+                  "value": "Review score distribution",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Valid orders with a review; counts weighted by order\\_weight",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "review_score",
+                  "displayName": "Review score",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(orders)",
+                  "displayName": "Orders",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "0f917de3",
+            "spec": {
+              "widgetType": "text",
+              "version": 1,
+              "encodings": {
+                "text": {
+                  "lines": [
+                    "<span style=\"text-align:center;display:block;\"><span style=\"font-family: Arial;font-weight: 500;font-size: 18px;\">Review data covers valid orders that have a review</span></span>"
+                  ],
+                  "fields": []
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 12,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
