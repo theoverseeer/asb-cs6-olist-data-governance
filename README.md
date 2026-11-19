@@ -6,24 +6,7 @@ End-to-end, rule-driven data quality pipeline for the Olist Brazilian E-Commerce
 
 ## 1. Architecture
 
-```mermaid
-%%{init: {"flowchart": {"padding": 20}}}%%
-flowchart TD
-    A[Olist CSVs in UC Volume raw.landing] --> B[raw schema<br/>all STRING + lineage columns]
-    B --> P[02 Profiling<br/>governance.profile_*]
-    B --> C{04 DQ engine<br/>60 rules from<br/>governance.dq_rule_registry}
-    C -->|passed all QUARANTINE rules| V[valid schema<br/>typed + dq_warning_rules]
-    C -->|failed >= 1 rule| Q[quarantine.records<br/>failed_rules, dimensions, count, original row JSON]
-    C --> R[governance.dq_rule_results<br/>governance.dq_run_summary]
-    V --> M[analytics schema<br/>4 facts + 5 dimensions]
-    M --> S[semantic schema<br/>sales_order_items, orders, payments, reviews]
-    Q --> D[semantic.dq_* views]
-    R --> D
-    S --> O[Dashboard 1 · Operational]
-    D --> X[Dashboard 2 · Data quality]
-    G[governance: glossary · RACI · ownership · classification · UC tags] -.-> M
-    G -.-> S
-```
+![Architecture](docs/evidence/architecture.png)
 
 Text version for the submission: `Source → Raw → Data Quality → {Valid, Quarantine} → Facts + Dimensions → Semantic Layer → Operational Dashboard`, with `Quarantine + results → Data Quality Dashboard`.
 
