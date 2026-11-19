@@ -41,8 +41,11 @@ Text version for the submission: `Source → Raw → Data Quality → {Valid, Qu
 ![Lineage](docs/screenshots/lineage_graph.png)
 
 ### Data quality dashboard
+![Olist Data Quality](dashboards/Olist%20Data%20Quality.png)
+![Olist Data Quality (continued)](dashboards/Olist%20Data%20Quality_1.png)
 ![Trust summary](dashboards/Trust%20Summary.png)
 ![Rule scorecard](dashboards/Rule%20Scorecard.png)
+![Rule scorecard (continued)](dashboards/Rule%20Scorecard_1.png)
 ![Evidence](dashboards/Evidence.png)
 
 ## 2. Repository map
