@@ -7,6 +7,7 @@ End-to-end, rule-driven data quality pipeline for the Olist Brazilian E-Commerce
 ## 1. Architecture
 
 ```mermaid
+%%{init: {"flowchart": {"padding": 20}}}%%
 flowchart TD
     A[Olist CSVs in UC Volume raw.landing] --> B[raw schema<br/>all STRING + lineage columns]
     B --> P[02 Profiling<br/>governance.profile_*]
