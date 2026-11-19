@@ -37,6 +37,8 @@ Text version for the submission: `Source → Raw → Data Quality → {Valid, Qu
 ![Operational delivery](dashboards/Operational%20Delivery.png)
 ![Operational customers and reviews](dashboards/Operational%20Customers%20and%20Reviews.png)
 
+Dataset queries: [docs/operational_datasets.sql](docs/operational_datasets.sql)
+
 ## 2. Repository map
 
 | Path | What it is |
