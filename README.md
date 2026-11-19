@@ -32,6 +32,11 @@ Text version for the submission: `Source → Raw → Data Quality → {Valid, Qu
 ![Rule scorecard (continued)](dashboards/Rule%20Scorecard_1.png)
 ![Evidence](dashboards/Evidence.png)
 
+### Operational dashboard
+![Operational overview](dashboards/Operational%20Overview.png)
+![Operational delivery](dashboards/Operational%20Delivery.png)
+![Operational customers and reviews](dashboards/Operational%20Customers%20and%20Reviews.png)
+
 ## 2. Repository map
 
 | Path | What it is |
